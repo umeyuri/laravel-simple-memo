@@ -94,7 +94,6 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    右カラム
                     @yield('content')
                 </div>
             </div>
