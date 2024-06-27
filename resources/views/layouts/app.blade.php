@@ -90,7 +90,9 @@
                         <div class="card-header">メモ一覧</div>
                         <div class="card-body">
                             @foreach ($memos as $memo)
-                                <a class="card-text d-block" href="{{ route('edit', ['id' => $memo->id ]) }}">{{ $memo->content }}</a>
+                                <a class="card-text d-block" href="{{ route('edit', ['id' => $memo->id ]) }}">
+                                    {{ $memo->content }}
+                                </a>
                             @endforeach
                         </div>
                     </div>

@@ -9,6 +9,7 @@
                 <div class="mb-3">
                     <textarea class="form-control" name="content" rows="3" placeholder="メモを入力してください"></textarea>
                 </div>
+                <input type="text" class="form-control w-50 mb-3" name="new_tag" placeholder="新規タグを入力">
                 <button type="submit" class="btn btn-primary">保存</button>
             </form>
         </div>

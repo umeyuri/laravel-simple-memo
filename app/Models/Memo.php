@@ -10,6 +10,6 @@ class Memo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'content',
+        'user_id', 'content','deleted_at'
     ];
 }

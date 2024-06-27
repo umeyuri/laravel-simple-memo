@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Memo;
+use App\Models\Tag;
+use App\Models\MemoTag;
+// use Illuminate\Support\Facades\DB;
+use DB;
 
 class HomeController extends Controller
 {
@@ -25,7 +29,8 @@ class HomeController extends Controller
     public function index()
     {
         $memos = Memo::where('user_id', \Auth::id())
-            ->whereNull('deleted_at')->orderBy('updated_at', 'DESC')
+            ->whereNull('deleted_at')
+            ->orderBy('updated_at', 'DESC')
             ->get();
 
         return view('create', compact('memos'));
@@ -34,10 +39,15 @@ class HomeController extends Controller
     public function store(Request $request) 
     {
         $post = $request->content;
-        Memo::create([
-            'content' => $post,
-            'user_id' => \Auth::id(),
-        ]);
+        
+        DB::transaction(function() use($post, $request){
+            $memo_id = Memo::insertGetId(['content' => $post, 'user_id' => \Auth::id()]);
+            $tag_exists = Tag::where('user_id', \Auth::id())->where('name', $request->new_tag)->exists();
+            if (!empty($request->new_tag) && !$tag_exists) {
+                $tag_id = Tag::insertGetId(['user_id' => \Auth::id(), 'name' => $request->new_tag]);
+                MemoTag::insert(['memo_id' => $memo_id, 'tag_id' => $tag_id]);
+            }
+        });
 
         return redirect(route('home'));
     }
@@ -51,5 +61,38 @@ class HomeController extends Controller
         $edit_memo = Memo::find($id);
 
         return view('edit', compact('memos', 'edit_memo'));
+    }
+
+    public function update(Request $request) {
+        $memos = Memo::where('user_id', \Auth::id())
+        ->whereNull('deleted_at')->orderBy('updated_at', 'DESC')
+        ->get();
+
+        $memo = Memo::find($request->memo_id);
+        $memo->update([
+            'content' => $request->content,
+        ]);
+
+        return redirect()->route('home');
+    }
+
+    public function destroy(Request $request) {
+        $memos = Memo::where('user_id', \Auth::id())
+        ->whereNull('deleted_at')
+        ->orderBy('updated_at', 'DESC')
+        ->get();
+
+        // $memo = Memo::where('id', $request->memo_id)
+        //      ->update([
+        //     'deleted_at' => now(),
+        // ]);
+        
+        $memo = Memo::find($request->memo_id);
+        $memo->update([
+            'deleted_at' => now(),
+        ]);
+
+        
+        return redirect()->route('home');
     }
 }
