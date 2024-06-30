@@ -17,6 +17,16 @@
                 <div class="mb-3">
                     <textarea class="form-control" name="content" rows="3" placeholder="メモを入力してください">{{ $edit_memo->content }}</textarea>
                 </div>
+                @foreach ($tags as $id => $tag_name)
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="tags[]" value="{{ $id }}" id="inlineCheckbox{{ $id }}"
+                            {{ in_array($id, $memo_tags) ? "checked" : ""}}>
+                        <label class="form-check-label" for="inlineCheckbox{{ $id }}">
+                            {{ $tag_name }}
+                        </label>
+                    </div>
+                @endforeach
+                <input type="text" class="form-control w-50 mb-3" name="new_tag" placeholder="新規タグを入力">
                 <button type="submit" class="btn btn-primary">更新</button>
             </form>
         </div>

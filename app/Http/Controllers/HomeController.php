@@ -28,71 +28,112 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $memos = Memo::where('user_id', \Auth::id())
-            ->whereNull('deleted_at')
-            ->orderBy('updated_at', 'DESC')
-            ->get();
+        // $tags = Tag::where('user_id', \Auth::id())
+        //     ->whereNull('deleted_at')
+        //     ->pluck('name', 'id');
 
-        return view('create', compact('memos'));
+        $tags = \Auth::user()->tags()->whereNull('deleted_at')->pluck('name', 'id');
+
+        return view('create', compact('tags'));
     }
 
     public function store(Request $request) 
     {
-        $post = $request->content;
-        
-        DB::transaction(function() use($post, $request){
-            $memo_id = Memo::insertGetId(['content' => $post, 'user_id' => \Auth::id()]);
-            $tag_exists = Tag::where('user_id', \Auth::id())->where('name', $request->new_tag)->exists();
-            if (!empty($request->new_tag) && !$tag_exists) {
-                $tag_id = Tag::insertGetId(['user_id' => \Auth::id(), 'name' => $request->new_tag]);
-                MemoTag::insert(['memo_id' => $memo_id, 'tag_id' => $tag_id]);
+        $post = $request->all();
+        DB::transaction(function() use($post){
+            //メモをDBに新規保存する。
+            $memo_id = Memo::insertGetId([
+                'content' => $post['content'],
+                'user_id' => \Auth::id(),
+            ]);
+
+            // 新規タグ名と既存タグ名の重複有無の確認
+            // $tag_exists = Tag::where('user_id', \Auth::id())->where('name', $post['new_tag'])->exists();
+            $tags_exists= \Auth::user()->tags()->where('name', $post['new_tag'])->exists();
+
+            // 新規タグがあれば保存。memotagテーブルにも紐づけ保存
+            if (!empty($post['new_tag']) && !$tag_exists) {
+                $tag_id = Tag::insertGetId([
+                    'name' => $post['new_tag'],
+                    'user_id' => \Auth::id(),
+                ]);
+
+                MemoTag::create(['memo_id' => $memo_id, 'tag_id' => $tag_id]);
+            }
+
+            //既存タグがチェックされていた場合memotags Tableにinsertする
+            if (!empty($post['tags'])) {
+                foreach ($post['tags'] as $tag) {
+                    MemoTag::insert(['memo_id' => $memo_id, 'tag_id' => $tag]);
+                }   
             }
         });
 
-        return redirect(route('home'));
+        return redirect()->route('home');
     }
 
     public function edit($id) {
-        
-        $memos = Memo::where('user_id', \Auth::id())
-        ->whereNull('deleted_at')->orderBy('updated_at', 'DESC')
-        ->get();
-
         $edit_memo = Memo::find($id);
 
-        return view('edit', compact('memos', 'edit_memo'));
+        // $tags = Tag::where('user_id', \Auth::id())
+        //     ->whereNull('deleted_at')
+        //     ->orderBy('updated_at', 'DESC')
+        //     ->pluck('name', 'id');
+        
+        $tags = \Auth::user()->tags()->whereNull('deleted_at')->orderBy('updated_at', 'DESC')->pluck('name', 'id');
+
+        $memo_tags = $edit_memo->tags()->pluck('id')->all();
+
+        return view('edit', compact('edit_memo', 'memo_tags', 'tags'));
     }
 
     public function update(Request $request) {
-        $memos = Memo::where('user_id', \Auth::id())
-        ->whereNull('deleted_at')->orderBy('updated_at', 'DESC')
-        ->get();
+        $posts = $request->all();
 
-        $memo = Memo::find($request->memo_id);
-        $memo->update([
-            'content' => $request->content,
-        ]);
+        DB::transaction(function() use($posts) {
+
+            $memo = Memo::find($posts['memo_id']);
+
+            // メモ内容の更新
+            $memo->update([
+                'content' => $posts['content'],
+            ]);
+
+            // 中間テーブルのデータを一旦全削除し、新規作成
+            $memo->tags()->detach();
+            if (!empty($posts['tags'])) {
+                $memo->tags()->attach($posts['tags']);    
+            }
+
+            // 新規タグ名と既存タグ名の重複有無の確認
+            //$tag_exists = Tag::where('user_id', \Auth::id())->where('name', $posts['new_tag'])->exists();
+            $tag_exists = \Auth::user()->tags()->where('name', $posts['new_tag'])->exists();
+
+            // 新規タグがあれば、タグテーブルに保存。memotagテーブルにも紐づけ保存
+            if (!empty($posts['new_tag']) && !$tag_exists) {
+                $tag_id = Tag::insertGetId([
+                    'name' => $posts['new_tag'],
+                    'user_id' => \Auth::id(),
+                ]);
+
+                MemoTag::create(['memo_id' => $posts['memo_id'], 'tag_id' => $tag_id]);
+            }
+
+        });
 
         return redirect()->route('home');
     }
 
     public function destroy(Request $request) {
-        $memos = Memo::where('user_id', \Auth::id())
-        ->whereNull('deleted_at')
-        ->orderBy('updated_at', 'DESC')
-        ->get();
-
-        // $memo = Memo::where('id', $request->memo_id)
-        //      ->update([
-        //     'deleted_at' => now(),
-        // ]);
-        
         $memo = Memo::find($request->memo_id);
+
         $memo->update([
             'deleted_at' => now(),
         ]);
 
-        
+        // 中間テーブルはdeleted_atカラムを作成していないため物理削除
+        $memo->memotags()->delete();
+
         return redirect()->route('home');
     }
 }
