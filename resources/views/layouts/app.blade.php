@@ -11,6 +11,7 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+    @yield('javascript')
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -18,6 +19,8 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v6.2.0/css/all.css" rel="stylesheet">
+
 </head>
 <body>
     <div id="app">
@@ -79,9 +82,14 @@
             <div class="row">
                 <div class="col-md-2 p-0">
                     <div class="card">
-                        <div class="card-header">左カラム</div>
+                        <div class="card-header">タグ一覧</div>
                         <div class="card-body">
-                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                            <a class="card-text d-block" href="{{ route('index') }}">全て表示</a>
+                            @foreach ($tags as $id => $tag_name)
+                                <a class="card-text d-block" href="{{ route('index', ['tag_id' => $id]) }}">
+                                    {{ $tag_name }}
+                                </a>
+                            @endforeach
                         </div>
                     </div>
                 </div>

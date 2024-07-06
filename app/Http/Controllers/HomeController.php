@@ -28,10 +28,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // $tags = Tag::where('user_id', \Auth::id())
-        //     ->whereNull('deleted_at')
-        //     ->pluck('name', 'id');
-
         $tags = \Auth::user()->tags()->whereNull('deleted_at')->pluck('name', 'id');
 
         return view('create', compact('tags'));
@@ -39,7 +35,11 @@ class HomeController extends Controller
 
     public function store(Request $request) 
     {
+        $request->validate([
+            'content' => 'required',
+        ]);
         $post = $request->all();
+        
         DB::transaction(function() use($post){
             //メモをDBに新規保存する。
             $memo_id = Memo::insertGetId([
@@ -88,6 +88,10 @@ class HomeController extends Controller
     }
 
     public function update(Request $request) {
+        $request->validate([
+            'content' => 'required',
+        ]);
+        
         $posts = $request->all();
 
         DB::transaction(function() use($posts) {

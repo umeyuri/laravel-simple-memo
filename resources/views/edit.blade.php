@@ -1,14 +1,18 @@
 @extends('layouts.app')
 
+@section('javascript')
+    <script src="{{ asset('js/confirm.js') }}"></script>
+@endsection
+
 @section('content')
 <div class="container p-0">
         <div class="card">
             <div class="card-header">
                 メモ編集
-                <form method="POST" action="{{ route('destroy') }}">
+                <form method="POST" action="{{ route('destroy') }}" id="delete-form">
                     @csrf
                     <input type="hidden" value="{{ $edit_memo->id }}" name="memo_id">
-                    <button type="submit">削除</button>
+                    <i class="fa-solid fa-trash-can" onclick="deleteHandle(event)"></i>
                 </form>
             </div>
             <form class="card-body" action="{{ route('update') }}" method="post">
@@ -17,6 +21,9 @@
                 <div class="mb-3">
                     <textarea class="form-control" name="content" rows="3" placeholder="メモを入力してください">{{ $edit_memo->content }}</textarea>
                 </div>
+                @error('content')
+                    <div class="alert alert-danger">メモ内容を入力してください</div>
+                @enderror
                 @foreach ($tags as $id => $tag_name)
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="checkbox" name="tags[]" value="{{ $id }}" id="inlineCheckbox{{ $id }}"
