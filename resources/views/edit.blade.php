@@ -7,7 +7,7 @@
 @section('content')
 <div class="container p-0">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between">
                 メモ編集
                 <form method="POST" action="{{ route('destroy') }}" id="delete-form">
                     @csrf
@@ -15,7 +15,7 @@
                     <i class="fa-solid fa-trash-can" onclick="deleteHandle(event)"></i>
                 </form>
             </div>
-            <form class="card-body" action="{{ route('update') }}" method="post">
+            <form class="card-body my-card-body" action="{{ route('update') }}" method="post">
                 @csrf
                 <input type="hidden" value="{{ $edit_memo->id }}" name="memo_id">
                 <div class="mb-3">

@@ -19,6 +19,7 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/layout.css') }}" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v6.2.0/css/all.css" rel="stylesheet">
 
 </head>
@@ -80,32 +81,32 @@
 
         <main class="">
             <div class="row">
-                <div class="col-md-2 p-0">
+                <div class="col-sm-12 col-md-2 p-0">
                     <div class="card">
                         <div class="card-header">タグ一覧</div>
-                        <div class="card-body">
-                            <a class="card-text d-block" href="{{ route('index') }}">全て表示</a>
+                        <div class="card-body my-card-body">
+                            <a class="card-text d-block mb-2" href="{{ route('index') }}">全て表示</a>
                             @foreach ($tags as $id => $tag_name)
-                                <a class="card-text d-block" href="{{ route('index', ['tag_id' => $id]) }}">
+                                <a class="card-text d-block elipsis mb-2" href="{{ route('index', ['tag_id' => $id]) }}">
                                     {{ $tag_name }}
                                 </a>
                             @endforeach
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 p-0">
+                <div class="col-sm-12 col-md-4 p-0">
                     <div class="card">
                         <div class="card-header">メモ一覧</div>
-                        <div class="card-body">
+                        <div class="card-body my-card-body">
                             @foreach ($memos as $memo)
-                                <a class="card-text d-block" href="{{ route('edit', ['id' => $memo->id ]) }}">
+                                <a class="card-text d-block elipsis mb-2" href="{{ route('edit', ['id' => $memo->id ]) }}">
                                     {{ $memo->content }}
                                 </a>
                             @endforeach
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 p-0">
+                <div class="col-sm-12 col-md-6 p-0">
                     @yield('content')
                 </div>
             </div>
